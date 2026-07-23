@@ -40,6 +40,16 @@ function App() {
 
   const messagesEndRef = useRef<HTMLDivElement>(null);
 
+  const [isDark, setIsDark] = useState(true);
+
+  useEffect(() => {
+    if (isDark) {
+      document.documentElement.classList.add('dark');
+    } else {
+      document.documentElement.classList.remove('dark');
+    }
+  }, [isDark]);
+
   useEffect(() => {
     messagesEndRef.current?.scrollIntoView({ behavior: 'smooth' });
   }, [messages]);
@@ -201,9 +211,21 @@ function App() {
 
   return (
     <div className="App">
-      <header className="header">
-        <h1>Redal Assistant</h1>
-        <p>Toujours à votre écoute, 24h/24</p>
+      <header className="header" style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+        <div style={{ textAlign: 'left' }}>
+          <h1>Redal Assistant</h1>
+          <p>Toujours à votre écoute, 24h/24</p>
+        </div>
+        <button 
+          onClick={() => setIsDark(!isDark)}
+          style={{
+            background: 'transparent', border: '1px solid var(--border)', 
+            color: 'var(--text-main)', padding: '6px 12px', 
+            borderRadius: '20px', cursor: 'pointer', fontSize: '12px'
+          }}
+        >
+          {isDark ? '☀️ Light' : '🌙 Dark'}
+        </button>
       </header>
       
       <div className="chat-container">

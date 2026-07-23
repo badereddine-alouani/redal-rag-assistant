@@ -1,26 +1,26 @@
 :root {
-  /* Shadcn-inspired Zinc/Slate Theme */
-  --bg-dark: #09090b;          /* Zinc 950 */
-  --bg-card: #18181b;          /* Zinc 900 */
-  --bg-muted: #27272a;         /* Zinc 800 */
+  /* Light Mode Palette */
+  --bg-dark: #f8fafc;          /* Slate 50 */
+  --bg-card: #ffffff;          /* White */
+  --bg-muted: #f1f5f9;         /* Slate 100 */
   
   --primary-color: #E71F2A;    /* Veolia Red */
   --primary-foreground: #ffffff;
   
-  --secondary-color: #27272a;  /* Zinc 800 */
-  --secondary-hover: #3f3f46;  /* Zinc 700 */
-  --secondary-foreground: #f4f4f5;
+  --secondary-color: #f1f5f9;  /* Slate 100 */
+  --secondary-hover: #e2e8f0;  /* Slate 200 */
+  --secondary-foreground: #0f172a;
 
-  --accent-brand: #E71F2A;     /* Veolia Red for user messages */
+  --accent-brand: #E71F2A;     
   --accent-brand-hover: #C81522;
   
-  --text-main: #fafafa;
-  --text-muted: #a1a1aa;       /* Zinc 400 */
+  --text-main: #0f172a;        /* Slate 900 */
+  --text-muted: #64748b;       /* Slate 500 */
   
-  --border: rgba(255, 255, 255, 0.1);
-  --ring: rgba(255, 255, 255, 0.2);
+  --border: rgba(0, 0, 0, 0.1);
+  --ring: rgba(0, 0, 0, 0.1);
   
-  --error: #ef4444;            /* Red 500 */
+  --error: #ef4444;            
   --error-bg: rgba(239, 68, 68, 0.1);
   
   --radius-lg: 1rem;
@@ -28,6 +28,34 @@
   --radius-sm: 0.5rem;
   
   --shadow-sm: 0 1px 2px 0 rgba(0, 0, 0, 0.05);
+  --shadow-lg: 0 10px 15px -3px rgba(0, 0, 0, 0.1), 0 4px 6px -4px rgba(0, 0, 0, 0.1);
+}
+
+:root.dark {
+  /* Dark Mode Palette */
+  --bg-dark: #09090b;          /* Zinc 950 */
+  --bg-card: #18181b;          /* Zinc 900 */
+  --bg-muted: #27272a;         /* Zinc 800 */
+  
+  --primary-color: #E71F2A;    
+  --primary-foreground: #ffffff;
+  
+  --secondary-color: #27272a;  
+  --secondary-hover: #3f3f46;  
+  --secondary-foreground: #f4f4f5;
+
+  --accent-brand: #E71F2A;     
+  --accent-brand-hover: #C81522;
+  
+  --text-main: #fafafa;
+  --text-muted: #a1a1aa;       
+  
+  --border: rgba(255, 255, 255, 0.1);
+  --ring: rgba(255, 255, 255, 0.2);
+  
+  --error: #ef4444;            
+  --error-bg: rgba(239, 68, 68, 0.1);
+  
   --shadow-lg: 0 10px 15px -3px rgba(0, 0, 0, 0.5), 0 4px 6px -4px rgba(0, 0, 0, 0.5);
 }
 
