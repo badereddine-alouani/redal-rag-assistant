@@ -23,14 +23,11 @@ FORMAT RULES (VERY IMPORTANT):
 - NEVER put multiple bullet points on the same line
 - Add a line break before starting a list
 - Add a line break before "Note" or "Remarque"
-- Use this EXACT format:
-
+- Use this EXACT format for lists:
 - Item 1
 - Item 2
-- Item 3
 
-Note:
-Text...
+If there is a note, append it naturally at the end.
 
 - Do NOT merge sentences together
 - Do NOT output long paragraphs
