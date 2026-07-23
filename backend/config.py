@@ -1,4 +1,14 @@
 import os
+import logging
+
+# Centralized Logging Configuration
+logging.basicConfig(
+    level=logging.INFO,
+    format="%(asctime)s - %(name)s - %(levelname)s - %(message)s",
+    datefmt="%Y-%m-%d %H:%M:%S",
+)
+logger = logging.getLogger("redal-assistant")
+
 OLLAMA_HOST = os.getenv("OLLAMA_HOST", "http://localhost:11434")
 
 PROMPT_TEMPLATE = """You are the Redal virtual assistant.

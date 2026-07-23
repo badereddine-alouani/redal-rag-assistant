@@ -3,6 +3,7 @@ import re
 import docx
 from langchain_core.documents import Document
 from langchain_chroma import Chroma
+from config import logger
 from langchain_ollama import OllamaEmbeddings
 from langchain_text_splitters import RecursiveCharacterTextSplitter
 
@@ -17,7 +18,7 @@ def ingest_data():
     file_path = "../data/FAQ _ Demandes et informations (1).docx"
     
     if not os.path.exists(file_path):
-        print(f"File not found: {file_path}")
+        logger.error(f"File not found: {file_path}")
         return
 
     doc = docx.Document(file_path)
@@ -127,17 +128,17 @@ def ingest_data():
     flush_qa()
     
     if not docs:
-        print("No structured documents parsed.")
+        logger.warning("No structured documents parsed.")
         return
         
-    print(f"Storing {len(docs)} chunks in ChromaDB...")
+    logger.info(f"Storing {len(docs)} chunks in ChromaDB...")
     vectorstore = Chroma.from_documents(
-    documents=docs,
-    embedding=embeddings,
-    persist_directory=DB_DIR
+        documents=docs,
+        embedding=embeddings,
+        persist_directory=DB_DIR
     )
 
-    print(f"Ingestion complete at {DB_DIR}")
+    logger.info(f"Ingestion complete at {DB_DIR}")
 
 if __name__ == "__main__":
     ingest_data()
