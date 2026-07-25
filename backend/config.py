@@ -1,5 +1,9 @@
 import os
 import logging
+from dotenv import load_dotenv
+
+# Load .env file
+load_dotenv()
 
 # Centralized Logging Configuration
 logging.basicConfig(

@@ -25,6 +25,6 @@ async def escalate_endpoint(request: EscalateRequest, background_tasks: Backgrou
     db.commit()
     
     # Trigger background task for Excel + Email
-    background_tasks.add_task(process_escalation, db)
+    background_tasks.add_task(process_escalation)
     
     return {"claim_id": claim_id}
