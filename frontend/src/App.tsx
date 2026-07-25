@@ -177,7 +177,7 @@ function App() {
       const response = await fetch('http://localhost:8000/api/escalate', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ phone_number: cleanPhone, cil })
+        body: JSON.stringify({ phone_number: cleanPhone, cil, session_id: sessionId })
       });
       
       const data = await response.json();

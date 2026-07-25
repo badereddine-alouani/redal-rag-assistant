@@ -9,3 +9,5 @@ class ChatRequest(BaseModel):
 class EscalateRequest(BaseModel):
     phone_number: str
     cil: str
+    user_question: str | None = None
+    session_id: str | None = None

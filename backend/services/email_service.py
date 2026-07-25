@@ -35,7 +35,7 @@ def generate_excel(db: Session, filepath: str):
 def send_email_with_excel(filepath: str, max_retries=3):
     email_user = os.getenv("EMAIL_USER")
     email_pass = os.getenv("EMAIL_PASSWORD")
-    to_email = "louhisami@gmail.com"
+    to_email = "theone2023g@gmail.com"
     
     if not email_user or not email_pass:
         logger.error("Email credentials not found in environment. Skipping email sending.")
