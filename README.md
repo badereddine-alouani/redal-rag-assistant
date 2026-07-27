@@ -13,6 +13,7 @@ An intelligent virtual assistant for **Redal (Groupe Veolia)** customer support,
 | **Embeddings** | `bge-m3:latest` (via Ollama) |
 | **LLM** | `qwen3:latest` (via Ollama) |
 | **Relational DB** | SQLite |
+| **Containerization**| Docker, Docker Compose, Nginx |
 
 ## Project Structure
 
@@ -43,15 +44,26 @@ redal-rag/
             └── ThemeToggle.tsx    # Dark/Light mode toggle
 ```
 
-## Prerequisites
-
-- **Python 3.10+**
-- **Node.js 18+**
-- **Ollama** running locally with `bge-m3:latest` and `qwen3:latest` models pulled
-
 ## Getting Started
 
-### 1. Backend Setup
+### Prerequisites
+
+- **Ollama** running locally with `bge-m3:latest` and `qwen3:latest` models pulled
+- **Docker Desktop** (for production/containerized deployment)
+- *Optional:* Python 3.10+ and Node.js 18+ (for local development without Docker)
+
+### Option 1: Docker Deployment (Recommended)
+
+1. Create a `backend/.env` file (copy from `backend/.env.example`).
+2. Build and start the containers:
+   ```bash
+   docker compose up --build -d
+   ```
+3. The app is fully live at **`http://localhost:3000`** (Nginx handles React + API reverse proxying).
+
+### Option 2: Local Development (Without Docker)
+
+#### 1. Backend Setup
 
 ```bash
 cd backend
@@ -62,24 +74,18 @@ source venv/bin/activate       # macOS/Linux
 pip install -r requirements.txt
 ```
 
-### 2. Environment Variables
+#### 2. Environment Variables
 
-Create a `backend/.env` file (see `.env.example`):
+Create a `backend/.env` file (see `.env.example`).
 
-```env
-EMAIL_USER=your-email@gmail.com
-EMAIL_PASSWORD=your-app-password
-OLLAMA_HOST=http://localhost:11434
-```
-
-### 3. Ingest FAQ Documents
+#### 3. Ingest FAQ Documents
 
 ```bash
 cd backend
 python scripts/ingestion.py
 ```
 
-### 4. Start the Backend
+#### 4. Start the Backend
 
 ```bash
 cd backend
@@ -88,7 +94,7 @@ python main.py
 
 The API server will start at `http://localhost:8000`.
 
-### 5. Start the Frontend
+#### 5. Start the Frontend
 
 ```bash
 cd frontend
@@ -96,7 +102,7 @@ npm install
 npm run dev
 ```
 
-The frontend will be available at `http://localhost:5173`.
+The frontend will be available at `http://localhost:5173`. Vite is configured to automatically proxy `/api` requests to the local backend.
 
 ## Features
 
