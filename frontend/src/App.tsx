@@ -1,27 +1,10 @@
 import { useState, useRef, useEffect } from 'react';
-import ReactMarkdown from 'react-markdown';
-import remarkGfm from 'remark-gfm';
 import './index.css';
-
-type Step = 'menu' | 'subcategory' | 'interaction' | 'escalation' | 'closed';
-
-interface Message {
-  id: string;
-  sender: 'bot' | 'user';
-  text: string;
-  isStreaming?: boolean;
-}
-
-const CATEGORIES = {
-  Commerciale: [
-    "Branchement", "Abonnement", "Résiliation", "Tarification", 
-    "Solutions de paiement", "Services digitaux", "Service SMS", 
-    "Demande d'attestations", "Réseau Commercial"
-  ],
-  Technique: [
-    "Branchement", "Assainissement", "Eau", "Électricité", "Coupure des fournitures"
-  ]
-};
+import { type Step, type Message, CATEGORIES } from './types';
+import ChatMessage from './components/ChatMessage';
+import ChatOptions from './components/ChatOptions';
+import EscalationForm from './components/EscalationForm';
+import ThemeToggle from './components/ThemeToggle';
 
 function App() {
   const [messages, setMessages] = useState<Message[]>([]);
@@ -31,7 +14,7 @@ function App() {
   const [inputText, setInputText] = useState('');
   const [isLoading, setIsLoading] = useState(false);
   const [sessionId] = useState(() => Math.random().toString(36).substring(7));
-  
+
   // Escalation state
   const [phone, setPhone] = useState('');
   const [cil, setCil] = useState('');
@@ -59,8 +42,7 @@ function App() {
   useEffect(() => {
     if (!hasInitialized.current) {
       hasInitialized.current = true;
-      // Initial message
-      addBotMessage("💬 Bonjour et bienvenue sur le service d’assistance en ligne de Redal !\nJe suis votre assistant virtuel, là pour vous aider 24h/24. Que puis-je faire pour vous aujourd’hui ? 💡\n👉 Je vous invite à choisir une option parmi le menu ci-dessous.");
+      addBotMessage("💬 Bonjour et bienvenue sur le service d'assistance en ligne de Redal !\nJe suis votre assistant virtuel, là pour vous aider 24h/24. Que puis-je faire pour vous aujourd'hui ? 💡\n👉 Je vous invite à choisir une option parmi le menu ci-dessous.");
     }
   }, []);
 
@@ -88,7 +70,7 @@ function App() {
 
   const handleSendMessage = async () => {
     if (!inputText.trim() || isLoading) return;
-    
+
     const userQ = inputText.trim();
     setInputText('');
     addUserMessage(userQ);
@@ -118,10 +100,9 @@ function App() {
         }
       }
 
-      // Handle SSE
       const reader = response.body?.getReader();
       const decoder = new TextDecoder();
-      
+
       const botMsgId = Date.now().toString();
       setMessages(prev => [...prev, { id: botMsgId, sender: 'bot', text: '', isStreaming: true }]);
 
@@ -130,7 +111,7 @@ function App() {
         const { value, done: doneReading } = await reader.read();
         done = doneReading;
         const chunkValue = decoder.decode(value);
-        
+
         const lines = chunkValue.split('\n');
         for (const line of lines) {
           if (line.startsWith('data: ')) {
@@ -145,12 +126,11 @@ function App() {
           }
         }
       }
-      
-      // Ask if they have another question
+
       setTimeout(() => {
         addBotMessage("Avez-vous une autre question ?");
       }, 1000);
-      
+
     } catch (error) {
       console.error(error);
       addBotMessage("Une erreur est survenue lors de la communication avec le serveur.");
@@ -179,7 +159,7 @@ function App() {
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ phone_number: cleanPhone, cil, session_id: sessionId })
       });
-      
+
       const data = await response.json();
       if (response.ok) {
         setClaimId(data.claim_id);
@@ -207,7 +187,7 @@ function App() {
       setCil('');
       addBotMessage("👉 Je vous invite à choisir une option parmi le menu ci-dessous.");
     } else {
-      addBotMessage("Merci d’avoir utilisé notre assistant virtuel. Nous espérons avoir répondu à votre demande !\nSi vous avez d’autres questions, n’hésitez pas à revenir à tout moment.\nL’équipe Redal reste à votre écoute. Excellente journée à vous ! 🌟");
+      addBotMessage("Merci d'avoir utilisé notre assistant virtuel. Nous espérons avoir répondu à votre demande !\nSi vous avez d'autres questions, n'hésitez pas à revenir à tout moment.\nL'équipe Redal reste à votre écoute. Excellente journée à vous ! 🌟");
       setStep('closed');
     }
   };
@@ -219,31 +199,12 @@ function App() {
           <h1>Redal Assistant</h1>
           <p>Toujours à votre écoute, 24h/24</p>
         </div>
-        <button 
-          onClick={() => setIsDark(!isDark)}
-          style={{
-            background: 'transparent', border: '1px solid var(--border)', 
-            color: 'var(--text-main)', padding: '6px 12px', 
-            borderRadius: '20px', cursor: 'pointer', fontSize: '12px'
-          }}
-        >
-          {isDark ? '☀️ Light' : '🌙 Dark'}
-        </button>
+        <ThemeToggle isDark={isDark} onToggle={() => setIsDark(!isDark)} />
       </header>
-      
+
       <div className="chat-container">
         {messages.map((m) => (
-          <div key={m.id} className={`message ${m.sender}`}>
-            {m.isStreaming ? (
-              <pre style={{ whiteSpace: 'pre-wrap', fontFamily: 'inherit', margin: 0 }}>
-                {m.text}
-              </pre>
-            ) : (
-              <ReactMarkdown remarkPlugins={[remarkGfm]}>
-                {m.text}
-              </ReactMarkdown>
-            )}
-          </div>
+          <ChatMessage key={m.id} message={m} />
         ))}
         {isLoading && step !== 'escalation' && (
           <div className="message bot typing-indicator">
@@ -252,41 +213,30 @@ function App() {
         )}
 
         {step === 'menu' && !isLoading && (
-          <div className="options-container">
-            {Object.keys(CATEGORIES).map(cat => (
-              <button key={cat} className="btn-option" onClick={() => handleCategorySelect(cat)}>
-                {cat}
-              </button>
-            ))}
-          </div>
+          <ChatOptions options={Object.keys(CATEGORIES)} onSelect={handleCategorySelect} />
         )}
 
         {step === 'subcategory' && !isLoading && (
-          <div className="options-container">
-            {CATEGORIES[category as keyof typeof CATEGORIES].map(sub => (
-              <button key={sub} className="btn-option" onClick={() => handleSubcategorySelect(sub)}>
-                {sub}
-              </button>
-            ))}
-          </div>
+          <ChatOptions options={CATEGORIES[category as keyof typeof CATEGORIES]} onSelect={handleSubcategorySelect} />
         )}
 
         {step === 'escalation' && !claimId && (
-          <div className="escalation-form">
-            <input type="text" placeholder="📱 Numéro de téléphone (ex: 06...)" value={phone} onChange={e => setPhone(e.target.value)} disabled={isLoading} />
-            <input type="text" placeholder="🧾 Numéro de CIL" value={cil} onChange={e => setCil(e.target.value)} disabled={isLoading} />
-            {escalationError && <div style={{color: 'var(--error)', fontSize: '13px'}}>{escalationError}</div>}
-            <button onClick={submitEscalation} disabled={isLoading || !phone || !cil}>
-              {isLoading ? 'Envoi...' : 'Envoyer'}
-            </button>
-          </div>
+          <EscalationForm
+            phone={phone}
+            setPhone={setPhone}
+            cil={cil}
+            setCil={setCil}
+            escalationError={escalationError}
+            isLoading={isLoading}
+            onSubmit={submitEscalation}
+          />
         )}
 
-        {messages.length > 0 && messages[messages.length-1].text === "Avez-vous une autre question ?" && !isLoading && (
-           <div className="options-container">
-             <button className="btn-option" onClick={() => handleRestart(true)}>✅ Oui</button>
-             <button className="btn-option" onClick={() => handleRestart(false)}>❌ Non</button>
-           </div>
+        {messages.length > 0 && messages[messages.length - 1].text === "Avez-vous une autre question ?" && !isLoading && (
+          <div className="options-container">
+            <button className="btn-option" onClick={() => handleRestart(true)}>✅ Oui</button>
+            <button className="btn-option" onClick={() => handleRestart(false)}>❌ Non</button>
+          </div>
         )}
 
         {step === 'closed' && (
@@ -302,9 +252,9 @@ function App() {
 
       {(step === 'interaction' || step === 'escalation') && (
         <div className="input-area">
-          <input 
-            type="text" 
-            placeholder="Écrivez votre message..." 
+          <input
+            type="text"
+            placeholder="Écrivez votre message..."
             value={inputText}
             onChange={(e) => setInputText(e.target.value)}
             onKeyPress={(e) => e.key === 'Enter' && handleSendMessage()}

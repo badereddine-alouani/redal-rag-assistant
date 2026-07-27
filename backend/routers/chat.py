@@ -5,7 +5,7 @@ from sqlalchemy.orm import Session
 from database import get_db, QueryLog
 from schemas import ChatRequest
 from config import PROMPT_TEMPLATE, OLLAMA_HOST
-from ingestion import DB_DIR, embeddings
+from scripts.ingestion import DB_DIR, embeddings
 from langchain_chroma import Chroma
 from langchain_ollama import OllamaLLM
 
