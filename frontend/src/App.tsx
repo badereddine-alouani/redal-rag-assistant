@@ -3,7 +3,7 @@ import ReactMarkdown from 'react-markdown';
 import remarkGfm from 'remark-gfm';
 import './index.css';
 
-type Step = 'menu' | 'subcategory' | 'interaction' | 'escalation';
+type Step = 'menu' | 'subcategory' | 'interaction' | 'escalation' | 'closed';
 
 interface Message {
   id: string;
@@ -184,6 +184,9 @@ function App() {
       if (response.ok) {
         setClaimId(data.claim_id);
         addBotMessage(`📄 Voici votre numéro de réclamation : ${data.claim_id}\n📌 Conservez ce numéro pour le suivi de votre demande.\nNous vous recontacterons dans les plus brefs délais. Merci pour votre compréhension. 🙏`);
+        setTimeout(() => {
+          addBotMessage("Avez-vous une autre question ?");
+        }, 1200);
       } else {
         setEscalationError(data.detail || "Une erreur est survenue.");
       }
@@ -205,7 +208,7 @@ function App() {
       addBotMessage("👉 Je vous invite à choisir une option parmi le menu ci-dessous.");
     } else {
       addBotMessage("Merci d’avoir utilisé notre assistant virtuel. Nous espérons avoir répondu à votre demande !\nSi vous avez d’autres questions, n’hésitez pas à revenir à tout moment.\nL’équipe Redal reste à votre écoute. Excellente journée à vous ! 🌟");
-      setStep('menu'); // reset internally but keep UI dead or just let them read
+      setStep('closed');
     }
   };
 
@@ -284,6 +287,14 @@ function App() {
              <button className="btn-option" onClick={() => handleRestart(true)}>✅ Oui</button>
              <button className="btn-option" onClick={() => handleRestart(false)}>❌ Non</button>
            </div>
+        )}
+
+        {step === 'closed' && (
+          <div className="options-container">
+            <button className="btn-option" onClick={() => handleRestart(true)}>
+              🔄 Nouvelle Conversation
+            </button>
+          </div>
         )}
 
         <div ref={messagesEndRef} />
