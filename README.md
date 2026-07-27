@@ -106,7 +106,3 @@ The frontend will be available at `http://localhost:5173`.
 - **Automated escalation** with claim tracking and email notifications
 - **Dark/Light mode** with official Redal/Veolia branding
 - **Moroccan phone validation** (06/07 format)
-
-## License
-
-This project was developed as a final-year engineering internship project (PFA/PFE).
