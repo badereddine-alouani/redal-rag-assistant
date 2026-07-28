@@ -34,39 +34,62 @@ async def chat_endpoint(request: ChatRequest, db: Session = Depends(get_db)):
     query_text = f"{request.user_question} {request.category} {request.subcategory}"
     docs = retriever.invoke(query_text)
     
-    retrieved_context = "\n\n".join([d.page_content for d in docs])
+    retrieved_context = "\n\n".join([f"Question: {d.metadata.get('question', 'N/A')}\nRéponse: {d.page_content}" for d in docs])
     
     prompt = PROMPT_TEMPLATE.format(
         retrieved_context=retrieved_context,
         question=request.user_question
     )
     
-    # Buffer full response to check for FALLBACK
-    full_response = llm.invoke(prompt)
-    
-    is_fallback = 1 if full_response.strip() == "FALLBACK" else 0
-    
-    # Log query
-    log_entry = QueryLog(
-        session_id=request.session_id,
-        category=request.category,
-        subcategory=request.subcategory,
-        user_query=request.user_question,
-        is_fallback=is_fallback
-    )
-    db.add(log_entry)
-    db.commit()
-    
-    if is_fallback:
-        return {"fallback": True}
-    
-    # Fake stream the buffered response to satisfy streaming requirement
     async def event_generator():
-        for i in range(0, len(full_response), 5):
-            chunk = full_response[i:i+5]
-            safe_chunk = chunk.replace('\n', '\\n')
-            yield f"data: {safe_chunk}\n\n"
-            await asyncio.sleep(0.02)
-        yield "data: [DONE]\n\n"
+        fallback_target = "FALLBACK"
+        buffer = ""
+        is_fallback_mode = True
+        full_response = ""
+        is_fallback_result = 0
         
+        async for chunk in llm.astream(prompt):
+            full_response += chunk
+            if is_fallback_mode:
+                buffer += chunk
+                
+                # Strip leading whitespace which LLMs sometimes output
+                stripped_buffer = buffer.strip()
+                
+                if stripped_buffer == fallback_target:
+                    # Perfect match, it's a fallback!
+                    is_fallback_result = 1
+                    yield "data: [FALLBACK]\n\n"
+                    break
+                elif fallback_target.startswith(stripped_buffer):
+                    # Still a potential fallback, hold the buffer
+                    continue
+                else:
+                    # Deviation detected! Not a fallback.
+                    is_fallback_mode = False
+                    # Flush the full unstripped buffer to the client
+                    safe_buffer = buffer.replace('\n', '\\n')
+                    if safe_buffer:
+                        yield f"data: {safe_buffer}\n\n"
+                    buffer = ""
+            else:
+                # Normal streaming mode
+                safe_chunk = chunk.replace('\n', '\\n')
+                if safe_chunk:
+                    yield f"data: {safe_chunk}\n\n"
+                
+        if not is_fallback_result:
+            yield "data: [DONE]\n\n"
+            
+        # Log query after stream completes
+        log_entry = QueryLog(
+            session_id=request.session_id,
+            category=request.category,
+            subcategory=request.subcategory,
+            user_query=request.user_question,
+            is_fallback=is_fallback_result
+        )
+        db.add(log_entry)
+        db.commit()
+
     return StreamingResponse(event_generator(), media_type="text/event-stream")

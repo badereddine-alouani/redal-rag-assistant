@@ -79,7 +79,10 @@ function App() {
     try {
       const response = await fetch('/api/chat', {
         method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
+        headers: { 
+          'Content-Type': 'application/json',
+          'Accept': 'text/event-stream'
+        },
         body: JSON.stringify({
           session_id: sessionId,
           category,
@@ -90,26 +93,24 @@ function App() {
 
       if (!response.ok) throw new Error('Network response was not ok');
 
-      const contentType = response.headers.get('content-type');
-      if (contentType && contentType.includes('application/json')) {
-        const data = await response.json();
-        if (data.fallback) {
-          triggerEscalation();
-          setIsLoading(false);
-          return;
-        }
-      }
+
 
       const reader = response.body?.getReader();
       const decoder = new TextDecoder();
 
-      const botMsgId = Date.now().toString();
-      setMessages(prev => [...prev, { id: botMsgId, sender: 'bot', text: '', isStreaming: true }]);
-
+      let botMsgId = '';
+      let isFallback = false;
       let done = false;
       while (!done && reader) {
         const { value, done: doneReading } = await reader.read();
         done = doneReading;
+        
+        if (!botMsgId && value) {
+          botMsgId = Date.now().toString();
+          setMessages(prev => [...prev, { id: botMsgId, sender: 'bot', text: '', isStreaming: true }]);
+          setIsLoading(false); // Hide typing indicator only when text starts arriving
+        }
+
         const chunkValue = decoder.decode(value);
 
         const lines = chunkValue.split('\n');
@@ -121,15 +122,24 @@ function App() {
               setMessages(prev => prev.map(m => m.id === botMsgId ? { ...m, isStreaming: false } : m));
               break;
             }
+            if (data === '[FALLBACK]') {
+              done = true;
+              isFallback = true;
+              setMessages(prev => prev.filter(m => m.id !== botMsgId));
+              triggerEscalation();
+              break;
+            }
             data = data.replace(/\\n/g, '\n');
             setMessages(prev => prev.map(m => m.id === botMsgId ? { ...m, text: m.text + data } : m));
           }
         }
       }
 
-      setTimeout(() => {
-        addBotMessage("Avez-vous une autre question ?");
-      }, 1000);
+      if (!isFallback) {
+        setTimeout(() => {
+          addBotMessage("Avez-vous une autre question ?");
+        }, 1000);
+      }
 
     } catch (error) {
       console.error(error);

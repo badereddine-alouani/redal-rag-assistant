@@ -111,4 +111,3 @@ The frontend will be available at `http://localhost:5173`. Vite is configured to
 - **Prompt injection protection** with strict LLM guardrails
 - **Automated escalation** with claim tracking and email notifications
 - **Dark/Light mode** with official Redal/Veolia branding
-- **Moroccan phone validation** (06/07 format)

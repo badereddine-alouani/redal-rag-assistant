@@ -1,6 +1,11 @@
 import os
+import sys
 import re
 import docx
+
+# Add parent directory (backend) to sys.path so config can be imported
+sys.path.append(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
+
 from langchain_core.documents import Document
 from langchain_chroma import Chroma
 from config import logger
@@ -15,7 +20,7 @@ embeddings = OllamaEmbeddings(
 )
 
 def ingest_data():
-    file_path = "../data/FAQ _ Demandes et informations (1).docx"
+    file_path = "../data/FAQ_Demandes_et_informations_with_links.docx"
     
     if not os.path.exists(file_path):
         logger.error(f"File not found: {file_path}")
@@ -89,7 +94,14 @@ def ingest_data():
         if found_cat:
             continue
             
-        # 2. Detect Subcategory
+        # 2. Detect Question
+        q_match = re.match(r"^(Q|Question)\s*[:：]\s*", text, re.IGNORECASE)
+        if q_match:
+            flush_qa()
+            current_question = text[q_match.end():].strip().lower()
+            continue
+
+        # 3. Detect Subcategory
         found_sub = False
         for cat in CATEGORIES:
             for sub in SUBCATEGORIES[cat]:
@@ -103,13 +115,6 @@ def ingest_data():
             if found_sub:
                 break
         if found_sub:
-            continue
-            
-        # 3. Detect Question
-        q_match = re.match(r"^(Q|Question)\s*[:：]\s*", text, re.IGNORECASE)
-        if q_match:
-            flush_qa()
-            current_question = text[q_match.end():].strip().lower()
             continue
             
         # 4. Detect Answer
