@@ -34,7 +34,7 @@ async def chat_endpoint(request: ChatRequest, db: Session = Depends(get_db)):
     query_text = f"{request.user_question} {request.category} {request.subcategory}"
     docs = retriever.invoke(query_text)
     
-    retrieved_context = "\n\n".join([f"Question: {d.metadata.get('question', 'N/A')}\nRéponse: {d.page_content}" for d in docs])
+    retrieved_context = "\n\n".join([d.page_content for d in docs])
     
     prompt = PROMPT_TEMPLATE.format(
         retrieved_context=retrieved_context,
