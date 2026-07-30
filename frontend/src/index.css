@@ -141,23 +141,23 @@
 
 /* Removed .App to avoid overriding .widget-window width */
 
-.header {
+.widget-header {
   padding: 1rem 1.5rem;
-  background: #ffffff;
+  background: #ffffff !important;
   text-align: left;
   border-bottom: 1px solid var(--border);
   z-index: 10;
 }
 
-.header h1 {
+.widget-header h1 {
   margin: 0;
   font-size: 1.25rem;
   font-weight: 600;
   letter-spacing: -0.025em;
-  color: var(--text-main);
+  color: var(--text-main) !important;
 }
 
-.header p {
+.widget-header p {
   margin: 0.25rem 0 0;
   font-size: 0.875rem;
   color: var(--text-muted);

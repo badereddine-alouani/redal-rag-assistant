@@ -213,7 +213,7 @@ function App() {
       )}
 
       <div className={`App widget-window ${isOpen ? 'open' : 'closed'}`}>
-        <header className="header" style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+        <header className="widget-header" style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
           <div style={{ display: 'flex', alignItems: 'center', gap: '12px', textAlign: 'left', flex: 1 }}>
             <img src={chatIcon} alt="Avatar" style={{ width: '36px', height: '36px', borderRadius: '50%', objectFit: 'cover', boxShadow: '0 2px 4px rgba(0,0,0,0.1)' }} />
             <h1 style={{ margin: 0 }}>Redal Assistant</h1>
