@@ -129,7 +129,7 @@ function App() {
       if (!isFallback) {
         setTimeout(() => {
           addBotMessage("Avez-vous une autre question ?");
-        }, 1000);
+        }, 1001);
       }
 
     } catch (error) {
