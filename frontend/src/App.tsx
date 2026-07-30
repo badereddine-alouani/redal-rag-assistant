@@ -4,7 +4,7 @@ import { type Step, type Message, CATEGORIES } from './types';
 import ChatMessage from './components/ChatMessage';
 import ChatOptions from './components/ChatOptions';
 import EscalationForm from './components/EscalationForm';
-import ThemeToggle from './components/ThemeToggle';
+import chatIcon from './assets/redalo.jpg';
 
 function App() {
   const [messages, setMessages] = useState<Message[]>([]);
@@ -14,6 +14,7 @@ function App() {
   const [inputText, setInputText] = useState('');
   const [isLoading, setIsLoading] = useState(false);
   const [sessionId] = useState(() => Math.random().toString(36).substring(7));
+  const [isOpen, setIsOpen] = useState(false);
 
   // Escalation state
   const [phone, setPhone] = useState('');
@@ -22,16 +23,6 @@ function App() {
   const [claimId, setClaimId] = useState('');
 
   const messagesEndRef = useRef<HTMLDivElement>(null);
-
-  const [isDark, setIsDark] = useState(true);
-
-  useEffect(() => {
-    if (isDark) {
-      document.documentElement.classList.add('dark');
-    } else {
-      document.documentElement.classList.remove('dark');
-    }
-  }, [isDark]);
 
   useEffect(() => {
     messagesEndRef.current?.scrollIntoView({ behavior: 'smooth' });
@@ -79,7 +70,7 @@ function App() {
     try {
       const response = await fetch('/api/chat', {
         method: 'POST',
-        headers: { 
+        headers: {
           'Content-Type': 'application/json',
           'Accept': 'text/event-stream'
         },
@@ -104,7 +95,7 @@ function App() {
       while (!done && reader) {
         const { value, done: doneReading } = await reader.read();
         done = doneReading;
-        
+
         if (!botMsgId && value) {
           botMsgId = Date.now().toString();
           setMessages(prev => [...prev, { id: botMsgId, sender: 'bot', text: '', isStreaming: true }]);
@@ -187,6 +178,12 @@ function App() {
     }
   };
 
+  const handleCancelEscalation = () => {
+    setStep('interaction');
+    setEscalationError('');
+    addBotMessage("Comment puis-je vous aider autrement ?");
+  };
+
   const handleRestart = (yes: boolean) => {
     if (yes) {
       setStep('menu');
@@ -203,79 +200,107 @@ function App() {
   };
 
   return (
-    <div className="App">
-      <header className="header" style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-        <div style={{ textAlign: 'left' }}>
-          <h1>Redal Assistant</h1>
-          <p>Toujours à votre écoute, 24h/24</p>
-        </div>
-        <ThemeToggle isDark={isDark} onToggle={() => setIsDark(!isDark)} />
-      </header>
-
-      <div className="chat-container">
-        {messages.map((m) => (
-          <ChatMessage key={m.id} message={m} />
-        ))}
-        {isLoading && step !== 'escalation' && (
-          <div className="message bot typing-indicator">
-            <span></span><span></span><span></span>
-          </div>
-        )}
-
-        {step === 'menu' && !isLoading && (
-          <ChatOptions options={Object.keys(CATEGORIES)} onSelect={handleCategorySelect} />
-        )}
-
-        {step === 'subcategory' && !isLoading && (
-          <ChatOptions options={CATEGORIES[category as keyof typeof CATEGORIES]} onSelect={handleSubcategorySelect} />
-        )}
-
-        {step === 'escalation' && !claimId && (
-          <EscalationForm
-            phone={phone}
-            setPhone={setPhone}
-            cil={cil}
-            setCil={setCil}
-            escalationError={escalationError}
-            isLoading={isLoading}
-            onSubmit={submitEscalation}
-          />
-        )}
-
-        {messages.length > 0 && messages[messages.length - 1].text === "Avez-vous une autre question ?" && !isLoading && (
-          <div className="options-container">
-            <button className="btn-option" onClick={() => handleRestart(true)}>✅ Oui</button>
-            <button className="btn-option" onClick={() => handleRestart(false)}>❌ Non</button>
-          </div>
-        )}
-
-        {step === 'closed' && (
-          <div className="options-container">
-            <button className="btn-option" onClick={() => handleRestart(true)}>
-              🔄 Nouvelle Conversation
-            </button>
-          </div>
-        )}
-
-        <div ref={messagesEndRef} />
-      </div>
-
-      {(step === 'interaction' || step === 'escalation') && (
-        <div className="input-area">
-          <input
-            type="text"
-            placeholder="Écrivez votre message..."
-            value={inputText}
-            onChange={(e) => setInputText(e.target.value)}
-            onKeyPress={(e) => e.key === 'Enter' && handleSendMessage()}
-            disabled={isLoading || step === 'escalation'}
-          />
-          <button onClick={handleSendMessage} disabled={isLoading || !inputText.trim() || step === 'escalation'}>
-            Envoyer
-          </button>
-        </div>
+    <>
+      {!isOpen && (
+        <button
+          className="widget-launcher"
+          onClick={() => setIsOpen(true)}
+          aria-label="Open chat"
+          style={{ padding: 0 }}
+        >
+          <img src={chatIcon} alt="Chat" className="widget-launcher-img" />
+        </button>
       )}
-    </div>
+
+      <div className={`App widget-window ${isOpen ? 'open' : 'closed'}`}>
+        <header className="header" style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+          <div style={{ display: 'flex', alignItems: 'center', gap: '12px', textAlign: 'left', flex: 1 }}>
+            <img src={chatIcon} alt="Avatar" style={{ width: '36px', height: '36px', borderRadius: '50%', objectFit: 'cover', boxShadow: '0 2px 4px rgba(0,0,0,0.1)' }} />
+            <h1 style={{ margin: 0 }}>Redal Assistant</h1>
+          </div>
+          <button
+            className="widget-close-btn"
+            onClick={() => setIsOpen(false)}
+            aria-label="Close chat"
+          >
+            <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+              <line x1="18" y1="6" x2="6" y2="18"></line>
+              <line x1="6" y1="6" x2="18" y2="18"></line>
+            </svg>
+          </button>
+        </header>
+
+        <div className="chat-container">
+          {messages.map((m) => (
+            <ChatMessage key={m.id} message={m} />
+          ))}
+          {isLoading && step !== 'escalation' && (
+            <div className="message bot typing-indicator">
+              <span></span><span></span><span></span>
+            </div>
+          )}
+
+          {step === 'menu' && !isLoading && (
+            <ChatOptions options={Object.keys(CATEGORIES)} onSelect={handleCategorySelect} />
+          )}
+
+          {step === 'subcategory' && !isLoading && (
+            <ChatOptions options={CATEGORIES[category as keyof typeof CATEGORIES]} onSelect={handleSubcategorySelect} />
+          )}
+
+          {step === 'escalation' && !claimId && (
+            <EscalationForm
+              phone={phone}
+              setPhone={setPhone}
+              cil={cil}
+              setCil={setCil}
+              escalationError={escalationError}
+              isLoading={isLoading}
+              onSubmit={submitEscalation}
+              onCancel={handleCancelEscalation}
+            />
+          )}
+
+          {messages.length > 0 && messages[messages.length - 1].text === "Avez-vous une autre question ?" && !isLoading && (
+            <div className="options-container">
+              <button className="btn-option" onClick={() => handleRestart(true)}>✅ Oui</button>
+              <button className="btn-option" onClick={() => handleRestart(false)}>❌ Non</button>
+            </div>
+          )}
+
+          {step === 'closed' && (
+            <div className="options-container">
+              <button className="btn-option" onClick={() => handleRestart(true)}>
+                🔄 Nouvelle Conversation
+              </button>
+            </div>
+          )}
+
+          <div ref={messagesEndRef} />
+        </div>
+
+        {(step === 'interaction' || step === 'escalation') && (
+          <div className="input-area">
+            <div className="input-wrapper">
+              <input
+                type="text"
+                placeholder="Ask anything..."
+                value={inputText}
+                onChange={(e) => setInputText(e.target.value)}
+                onKeyPress={(e) => e.key === 'Enter' && handleSendMessage()}
+                disabled={isLoading || step === 'escalation'}
+              />
+              <button onClick={handleSendMessage} disabled={isLoading || !inputText.trim() || step === 'escalation'} aria-label="Envoyer">
+                <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                  <line x1="22" y1="2" x2="11" y2="13"></line>
+                  <polygon points="22 2 15 22 11 13 2 9 22 2"></polygon>
+                </svg>
+              </button>
+            </div>
+          </div>
+        )}
+      </div>
+    </>
   );
 }
 
